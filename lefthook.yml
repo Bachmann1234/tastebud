@@ -6,10 +6,12 @@ pre-commit:
       run: npx biome check --staged --no-errors-on-unmatched
     ruff-check:
       glob: "scraper/**/*.py"
-      run: cd scraper && uv run ruff check {staged_files}
+      root: "scraper/"
+      run: uv run ruff check {staged_files}
     ruff-format:
       glob: "scraper/**/*.py"
-      run: cd scraper && uv run ruff format --check {staged_files}
+      root: "scraper/"
+      run: uv run ruff format --check {staged_files}
 
 pre-push:
   commands:

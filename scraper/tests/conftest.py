@@ -26,8 +26,8 @@ def sample_listing_html() -> str:
             <div id="restaurantID-the-capital-grille" class="restaurantEntry">
                 <div class="restaurantInfoBasic">
                     <div class="restaurantLogo">
-                        <a href="http://www.bostonchefs.com/restaurant/the-capital-grille" target="_blank">
-                            <img src="/static/images/restaurant_logos/the-capital-grille.gif" alt="logo" />
+                        <a href="/restaurant/the-capital-grille">
+                            <img src="/static/images/capital-grille.gif" alt="logo" />
                         </a>
                     </div>
                     <h4>

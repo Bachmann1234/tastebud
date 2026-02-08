@@ -31,7 +31,7 @@ class TestListingParser:
 
         capital_grille = next(r for r in restaurants if r.slug == "the-capital-grille")
         assert capital_grille.image_url is not None
-        assert "the-capital-grille.gif" in capital_grille.image_url
+        assert "capital-grille.gif" in capital_grille.image_url
 
     def test_get_total_pages(self, sample_listing_html):
         parser = ListingParser()

@@ -11,11 +11,14 @@ requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "lxml>=6.0.2",
+    "python-dotenv>=1.0.0",
     "requests>=2.32.5",
+    "supabase>=2.0.0",
 ]
 
 [project.scripts]
 scrape-rwb = "scraper.cli:main"
+load-to-supabase = "scraper.loader.cli:main"
 
 [dependency-groups]
 dev = [

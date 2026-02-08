@@ -56,3 +56,5 @@ __pycache__/
 
 # ide
 .idea/
+
+data/

@@ -45,7 +45,7 @@ python -m scraper.cli --pages 1 --use-cache -v  # Dev mode
 
 ### Scraper
 - Rate limit: 1.5s between requests (be respectful)
-- Cache HTML in `data/raw/` for debugging
+- `--use-cache` flag reads/writes HTML cache in `data/raw/`
 - Menu data loaded via AJAX from `/fetch/{slug}/{meal}/`
 - Output goes to `data/restaurants.json`
 

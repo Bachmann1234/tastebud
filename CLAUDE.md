@@ -29,6 +29,13 @@ python -m scraper.cli -v     # Full scrape
 python -m scraper.cli --pages 1 --use-cache -v  # Dev mode
 ```
 
+### Loader (Python → Supabase)
+```bash
+cd scraper
+uv run load-to-supabase -v            # Load restaurants into Supabase
+uv run load-to-supabase --dry-run -v  # Preview without writing to DB
+```
+
 ## Code Style
 
 ### TypeScript/JavaScript
@@ -48,6 +55,12 @@ python -m scraper.cli --pages 1 --use-cache -v  # Dev mode
 - `--use-cache` flag reads/writes HTML cache in `data/raw/`
 - Menu data loaded via AJAX from `/fetch/{slug}/{meal}/`
 - Output goes to `data/restaurants.json`
+
+### Database
+- Schema in `supabase/migrations/001_initial_schema.sql` (run via Supabase SQL Editor)
+- 4 tables: `restaurants`, `sessions`, `session_members`, `votes`
+- Loader uses `SUPABASE_SERVICE_ROLE_KEY` from `.env.local` to bypass RLS
+- Upserts on `slug` so re-runs are idempotent
 
 ### Frontend
 - Supabase for database (see `.env.example` for config)

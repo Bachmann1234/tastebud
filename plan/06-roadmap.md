@@ -14,9 +14,9 @@
 - [ ] Set up Python scraper with uv + Ruff
 - [ ] Set up GitHub repo with Actions CI (see `09-ci-tooling.md`)
 - [ ] Set up pre-commit hooks (lefthook)
-- [ ] Set up Supabase project and database schema
-- [ ] Build and run scraper (with tests for parsing logic)
-- [ ] Load restaurant data into database
+- [x] Set up Supabase project and database schema
+- [x] Build and run scraper (with tests for parsing logic)
+- [x] Load restaurant data into database
 - [ ] Write tests for API routes, then implement
 
 ### Day 2: Core Experience
@@ -80,14 +80,14 @@ gh repo create tastebud --private --source=. --push
 ```bash
 cd scraper
 
-# Initialize with uv (Astral's package manager)
-uv init
-uv add requests beautifulsoup4 lxml
-uv add --dev pytest ruff
+# Install dependencies
+uv sync
 
 # Run scraper
-uv run python scrape.py
-uv run python load_to_supabase.py
+uv run python -m scraper.cli -v
+
+# Load data into Supabase
+uv run load-to-supabase -v
 
 # Verify linting passes
 uv run ruff check .

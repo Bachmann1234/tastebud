@@ -223,9 +223,7 @@ class DetailParser:
                 )
                 if lat_match and lng_match:
                     try:
-                        return Coordinates(
-                            float(lat_match.group(1)), float(lng_match.group(1))
-                        )
+                        return Coordinates(float(lat_match.group(1)), float(lng_match.group(1)))
                     except ValueError:
                         pass
 

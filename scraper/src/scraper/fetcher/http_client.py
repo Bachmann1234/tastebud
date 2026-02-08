@@ -68,11 +68,12 @@ class RateLimitedClient:
         """Fetch a URL and return the response text."""
         self._wait_for_rate_limit()
 
-        response = self.session.get(url, timeout=self.timeout)
-        response.raise_for_status()
-
-        self._last_request_time = time.time()
-        return response.text
+        try:
+            response = self.session.get(url, timeout=self.timeout)
+            response.raise_for_status()
+            return response.text
+        finally:
+            self._last_request_time = time.time()
 
     def __enter__(self) -> "RateLimitedClient":
         return self

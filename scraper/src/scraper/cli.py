@@ -35,7 +35,8 @@ def fetch_listings(
         log("  Using cached page 1", verbose)
     else:
         html = client.get(LISTING_URL)
-        cache.save_listing(1, html)
+        if use_cache:
+            cache.save_listing(1, html)
         log("  Fetched page 1", verbose)
 
     if not html:
@@ -63,7 +64,8 @@ def fetch_listings(
         else:
             url = LISTING_PAGE_URL.format(page=page)
             html = client.get(url)
-            cache.save_listing(page, html)
+            if use_cache:
+                cache.save_listing(page, html)
             log(f"  Fetched page {page}", verbose)
 
         if html:
@@ -100,7 +102,8 @@ def fetch_details(
         else:
             try:
                 html = client.get(restaurant.detail_url)
-                cache.save_detail(restaurant.slug, html)
+                if use_cache:
+                    cache.save_detail(restaurant.slug, html)
                 log(f"  Fetched detail for {restaurant.slug}", verbose)
             except Exception as e:
                 log(f"  Error fetching {restaurant.slug}: {e}", verbose)

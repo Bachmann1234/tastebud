@@ -219,7 +219,7 @@ class DetailParser:
                     r"lat(?:itude)?[\"']?\s*[:=]\s*([+-]?\d+\.?\d*)", script.string
                 )
                 lng_match = re.search(
-                    r"lng|lon(?:gitude)?[\"']?\s*[:=]\s*([+-]?\d+\.?\d*)", script.string
+                    r"(?:lng|lon(?:gitude)?)[\"']?\s*[:=]\s*([+-]?\d+\.?\d*)", script.string
                 )
                 if lat_match and lng_match:
                     try:

@@ -10,7 +10,7 @@ from scraper.config import OUTPUT_FILE
 def load_restaurants(input_file: Path | None = None) -> list[dict[str, Any]]:
     """Load restaurant JSON from disk."""
     path = input_file or OUTPUT_FILE
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 

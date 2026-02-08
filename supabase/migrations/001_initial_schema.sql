@@ -24,6 +24,20 @@ CREATE TABLE restaurants (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Auto-update updated_at on row changes
+CREATE OR REPLACE FUNCTION set_restaurants_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_restaurants_set_updated_at
+BEFORE UPDATE ON restaurants
+FOR EACH ROW
+EXECUTE FUNCTION set_restaurants_updated_at();
+
 -- =============================================================================
 -- SESSIONS (group swiping sessions)
 -- =============================================================================

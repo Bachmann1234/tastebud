@@ -15,6 +15,15 @@ def get_supabase_client() -> Client:
     """Create a Supabase client using service role key from .env.local."""
     load_dotenv(PROJECT_ROOT / ".env.local")
 
+    required_vars = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
+    missing = [name for name in required_vars if not os.getenv(name)]
+    if missing:
+        missing_list = ", ".join(missing)
+        raise RuntimeError(
+            f"Missing required environment variable(s): {missing_list}. "
+            "Set them in .env.local at the project root."
+        )
+
     url = os.environ["NEXT_PUBLIC_SUPABASE_URL"]
     key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     return create_client(url, key)

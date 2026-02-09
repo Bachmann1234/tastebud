@@ -3,6 +3,7 @@
 import { Heart, Loader2, UtensilsCrossed, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import TinderCard from "react-tinder-card";
 import type { MyVotesResponse, Restaurant } from "@/lib/types";
@@ -37,10 +38,6 @@ function shuffle<T>(arr: T[]): T[] {
 	return arr;
 }
 
-interface API {
-	swipe: (dir: string) => Promise<void>;
-}
-
 export function SwipePage({ sessionId }: { sessionId: string }) {
 	const router = useRouter();
 
@@ -53,7 +50,7 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 	const [memberName, setMemberName] = useState("");
 
 	const tokenRef = useRef<string | null>(null);
-	const cardRefs = useRef<(API | null)[]>([]);
+	const cardRefs = useRef<(React.ComponentRef<typeof TinderCard> | null)[]>([]);
 	const currentIndexRef = useRef(-1);
 
 	const votedCount = useMemo(() => {
@@ -248,11 +245,11 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 			<div className="relative h-[500px] w-full max-w-[400px]">
 				{restaurants.map((restaurant, index) => (
 					<TinderCard
-						ref={(el: API | null) => {
+						ref={(el) => {
 							cardRefs.current[index] = el;
 						}}
 						key={restaurant.id}
-						onSwipe={(dir: string) => handleSwipe(dir, restaurant.id)}
+						onSwipe={(dir) => handleSwipe(dir, restaurant.id)}
 						onCardLeftScreen={handleCardLeftScreen}
 						preventSwipe={["up", "down"]}
 						className="absolute inset-0"

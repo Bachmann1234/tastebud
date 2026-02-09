@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TasteBud
+
+Tinder for Restaurant Week — a swipe-based app for couples and groups to discover and match on Restaurant Week Boston restaurants.
+
+## How It Works
+
+1. **Create** a session from the landing page
+2. **Share** the link with friends
+3. **Swipe** through restaurant cards (right = interested, left = pass)
+4. **Match** — see which restaurants everyone agreed on
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16, React 19, Tailwind CSS v4 |
+| Database | Supabase (Postgres) |
+| Scraper | Python, BeautifulSoup, lxml |
+| Tooling | Biome (JS), Ruff (Python), Lefthook |
+| Testing | Vitest, React Testing Library, Playwright |
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # Fill in Supabase keys
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Commands
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run lint         # Biome check
+npm run lint:fix     # Biome auto-fix
+npm run test         # Vitest (watch mode)
+npm run test:run     # Vitest (single run)
+npm run test:e2e     # Playwright E2E tests
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See [CLAUDE.md](CLAUDE.md) for scraper and loader commands.
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/
+    page.tsx                          # Landing page
+    api/
+      restaurants/route.ts            # GET restaurants
+      sessions/
+        route.ts                      # POST create session
+        [id]/
+          route.ts                    # GET session info
+          join/route.ts               # POST join session
+          vote/route.ts               # POST submit vote
+          matches/route.ts            # GET matches
+  components/
+    LandingPage.tsx                   # Session creation form
+    RestaurantCard.tsx                # Restaurant display card
+  lib/
+    types.ts                          # Shared TypeScript types
+    api/                              # API helpers (auth, errors)
+    supabase/                         # Supabase client
+scraper/                              # Python scraper package
+supabase/migrations/                  # Database schema
+```

@@ -31,15 +31,15 @@
 | Scraper | Python + BeautifulSoup | Simple, well-documented |
 | Database | Supabase (Postgres) | Free tier, realtime, easy setup |
 | Backend | Supabase + Edge Functions | Minimal server code needed |
-| Frontend | Next.js + React | Fast development, easy deployment |
+| Frontend | Next.js 16 + React 19 | Fast development, easy deployment |
 | Hosting | Vercel | Free, integrates with Next.js |
 
 ## MVP Scope
-- [ ] Scrape all Restaurant Week Boston data
-- [ ] Basic swipe UI with restaurant cards
-- [ ] Session creation with shareable links
-- [ ] Vote tracking per user per session
-- [ ] Match results page
+- [x] Scrape all Restaurant Week Boston data
+- [x] Basic swipe UI with restaurant cards
+- [x] Session creation with shareable links
+- [x] Vote tracking per user per session (API complete, UI pending)
+- [x] Match results page (API complete, UI pending)
 
 ## Future Enhancements
 - User accounts / authentication

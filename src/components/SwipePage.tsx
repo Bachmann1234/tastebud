@@ -227,7 +227,7 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 			</div>
 
 			{/* Card stack — only render a small window around the current card */}
-			<div className="relative h-[500px] w-full max-w-[400px] overflow-hidden">
+			<div className="relative h-[500px] w-full max-w-[400px] overflow-x-hidden overflow-y-visible">
 				{restaurants.map((restaurant, index) => {
 					// Only render the current card and the one animating off-screen
 					if (index < currentIndex || index > currentIndex + 1) return null;

@@ -85,7 +85,7 @@ function setupSwipeMocks(page: import("@playwright/test").Page) {
 	]);
 }
 
-function setSessionStorage(page: import("@playwright/test").Page) {
+function setMemberStorage(page: import("@playwright/test").Page) {
 	return page.addInitScript(
 		({ sessionId, token, name }) => {
 			localStorage.setItem(`tastebud_${sessionId}_token`, token);
@@ -99,7 +99,7 @@ test.describe("Swipe Page", () => {
 	test("loads and shows restaurant cards with progress bar", async ({
 		page,
 	}) => {
-		await setSessionStorage(page);
+		await setMemberStorage(page);
 		await setupSwipeMocks(page);
 
 		await page.goto(`/s/${SESSION_ID}/swipe`);
@@ -120,7 +120,7 @@ test.describe("Swipe Page", () => {
 	});
 
 	test("clicking Like advances to next restaurant", async ({ page }) => {
-		await setSessionStorage(page);
+		await setMemberStorage(page);
 		await setupSwipeMocks(page);
 
 		await page.goto(`/s/${SESSION_ID}/swipe`);
@@ -134,7 +134,7 @@ test.describe("Swipe Page", () => {
 	});
 
 	test("clicking Nope advances to next restaurant", async ({ page }) => {
-		await setSessionStorage(page);
+		await setMemberStorage(page);
 		await setupSwipeMocks(page);
 
 		await page.goto(`/s/${SESSION_ID}/swipe`);
@@ -149,7 +149,7 @@ test.describe("Swipe Page", () => {
 	test("shows all-done state after voting on all restaurants", async ({
 		page,
 	}) => {
-		await setSessionStorage(page);
+		await setMemberStorage(page);
 		await setupSwipeMocks(page);
 
 		await page.goto(`/s/${SESSION_ID}/swipe`);

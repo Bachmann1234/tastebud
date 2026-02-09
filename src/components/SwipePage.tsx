@@ -213,7 +213,7 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 		totalCount > 0 ? Math.round((votedCount / totalCount) * 100) : 0;
 
 	return (
-		<div className="flex h-screen flex-col items-center overflow-hidden bg-zinc-50 px-4 font-sans dark:bg-black">
+		<div className="flex h-dvh flex-col items-center overflow-hidden bg-zinc-50 px-4 font-sans dark:bg-black">
 			{/* Progress bar */}
 			<div className="w-full max-w-[400px] pt-6 pb-4">
 				<div className="mb-1 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">

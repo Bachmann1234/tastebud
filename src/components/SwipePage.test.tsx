@@ -426,6 +426,20 @@ describe("SwipePage", () => {
 		});
 	});
 
+	it("has Matches link in swipe header", async () => {
+		setupStorage();
+		mockFetchFor({});
+
+		render(<SwipePage sessionId={SESSION_ID} />);
+
+		await waitFor(() => {
+			expect(screen.getAllByTestId("tinder-card").length).toBeGreaterThan(0);
+		});
+
+		const matchesLink = screen.getByRole("link", { name: /Matches/i });
+		expect(matchesLink).toHaveAttribute("href", `/s/${SESSION_ID}/matches`);
+	});
+
 	it("has View Matches and Back to Session links on done screen", async () => {
 		setupStorage();
 		mockFetchFor({ votedIds: [1, 2, 3] });

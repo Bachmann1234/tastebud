@@ -9,7 +9,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import {
+	type FormEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import type { SessionDetailResponse } from "@/lib/types";
 
 type PageStatus =
@@ -68,6 +74,15 @@ export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 	const [errorMessage, setErrorMessage] = useState("");
 	const [nameError, setNameError] = useState("");
 	const [copied, setCopied] = useState(false);
+	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) {
+				clearTimeout(copiedTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	const fetchSession = useCallback(async () => {
 		try {
@@ -97,26 +112,27 @@ export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 		}
 	}, [sessionId]);
 
-	useEffect(() => {
-		async function init() {
-			const data = await fetchSession();
-			if (!data) return;
+	const initSession = useCallback(async () => {
+		const data = await fetchSession();
+		if (!data) return;
 
-			const stored = readStorage(sessionId);
-			if (stored.token) {
-				const isMember = data.members.some((m) => m.id === stored.token);
-				if (isMember && stored.name) {
-					setJoinedName(stored.name);
-					setPageStatus("joined");
-					return;
-				}
-				clearStorage(sessionId);
+		const stored = readStorage(sessionId);
+		if (stored.token) {
+			const isMember = data.members.some((m) => m.id === stored.token);
+			if (isMember && stored.name) {
+				setJoinedName(stored.name);
+				setPageStatus("joined");
+				return;
 			}
-
-			setPageStatus("join");
+			clearStorage(sessionId);
 		}
-		init();
+
+		setPageStatus("join");
 	}, [sessionId, fetchSession]);
+
+	useEffect(() => {
+		initSession();
+	}, [initSession]);
 
 	async function handleJoin(e: FormEvent) {
 		e.preventDefault();
@@ -138,6 +154,14 @@ export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 				body: JSON.stringify({ name: trimmed }),
 			});
 
+			if (response.status === 404) {
+				setPageStatus("not-found");
+				return;
+			}
+			if (response.status === 410) {
+				setPageStatus("expired");
+				return;
+			}
 			if (!response.ok) {
 				let message = "Failed to join session. Please try again.";
 				try {
@@ -170,9 +194,13 @@ export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 
 	async function handleCopyLink() {
 		try {
-			await navigator.clipboard.writeText(window.location.href);
+			const shareUrl = `${window.location.origin}/s/${sessionId}`;
+			await navigator.clipboard.writeText(shareUrl);
+			if (copiedTimeoutRef.current) {
+				clearTimeout(copiedTimeoutRef.current);
+			}
 			setCopied(true);
-			setTimeout(() => setCopied(false), 2000);
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
 		} catch {
 			// Clipboard API unavailable
 		}
@@ -181,9 +209,7 @@ export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 	function handleRetry() {
 		setPageStatus("loading");
 		setErrorMessage("");
-		fetchSession().then((data) => {
-			if (data) setPageStatus("join");
-		});
+		initSession();
 	}
 
 	// Loading state

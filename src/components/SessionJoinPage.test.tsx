@@ -473,7 +473,9 @@ describe("SessionJoinPage", () => {
 
 		await user.click(screen.getByText("Copy Link"));
 
-		expect(writeTextMock).toHaveBeenCalledWith(window.location.href);
+		expect(writeTextMock).toHaveBeenCalledWith(
+			`${window.location.origin}/s/${SESSION_ID}`,
+		);
 		expect(screen.getByText("Copied!")).toBeInTheDocument();
 	});
 
@@ -514,7 +516,55 @@ describe("SessionJoinPage", () => {
 		});
 	});
 
-	it("shows session name as fallback title", async () => {
+	it("shows not-found when join API returns 404", async () => {
+		const user = userEvent.setup();
+		const fetchSpy = vi.spyOn(global, "fetch");
+
+		fetchSpy.mockResolvedValueOnce(mockSessionResponse());
+
+		render(<SessionJoinPage sessionId={SESSION_ID} />);
+
+		await waitFor(() => {
+			expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
+		});
+
+		fetchSpy.mockResolvedValueOnce(
+			Response.json({ error: "Session not found" }, { status: 404 }),
+		);
+
+		await user.type(screen.getByPlaceholderText("Your name"), "Charlie");
+		await user.click(screen.getByRole("button", { name: "Join Session" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("Session not found")).toBeInTheDocument();
+		});
+	});
+
+	it("shows expired when join API returns 410", async () => {
+		const user = userEvent.setup();
+		const fetchSpy = vi.spyOn(global, "fetch");
+
+		fetchSpy.mockResolvedValueOnce(mockSessionResponse());
+
+		render(<SessionJoinPage sessionId={SESSION_ID} />);
+
+		await waitFor(() => {
+			expect(screen.getByPlaceholderText("Your name")).toBeInTheDocument();
+		});
+
+		fetchSpy.mockResolvedValueOnce(
+			Response.json({ error: "Session has expired" }, { status: 410 }),
+		);
+
+		await user.type(screen.getByPlaceholderText("Your name"), "Charlie");
+		await user.click(screen.getByRole("button", { name: "Join Session" }));
+
+		await waitFor(() => {
+			expect(screen.getByText("Session expired")).toBeInTheDocument();
+		});
+	});
+
+	it("shows default title when session name is null", async () => {
 		vi.spyOn(global, "fetch").mockResolvedValueOnce(
 			mockSessionResponse({ name: null }),
 		);

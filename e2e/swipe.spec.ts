@@ -168,6 +168,9 @@ test.describe("Swipe Page", () => {
 			page.getByText("You've voted on all 2 restaurants."),
 		).toBeVisible();
 		await expect(
+			page.getByRole("link", { name: "View Matches" }),
+		).toBeVisible();
+		await expect(
 			page.getByRole("link", { name: "Back to Session" }),
 		).toBeVisible();
 	});

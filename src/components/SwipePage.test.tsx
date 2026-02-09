@@ -426,17 +426,26 @@ describe("SwipePage", () => {
 		});
 	});
 
-	it("has back to session link on done screen", async () => {
+	it("has View Matches and Back to Session links on done screen", async () => {
 		setupStorage();
 		mockFetchFor({ votedIds: [1, 2, 3] });
 
 		render(<SwipePage sessionId={SESSION_ID} />);
 
 		await waitFor(() => {
-			expect(screen.getByText("Back to Session")).toBeInTheDocument();
+			expect(screen.getByText("View Matches")).toBeInTheDocument();
 		});
 
-		const link = screen.getByText("Back to Session");
-		expect(link.closest("a")).toHaveAttribute("href", `/s/${SESSION_ID}`);
+		const matchesLink = screen.getByText("View Matches");
+		expect(matchesLink.closest("a")).toHaveAttribute(
+			"href",
+			`/s/${SESSION_ID}/matches`,
+		);
+
+		const sessionLink = screen.getByText("Back to Session");
+		expect(sessionLink.closest("a")).toHaveAttribute(
+			"href",
+			`/s/${SESSION_ID}`,
+		);
 	});
 });

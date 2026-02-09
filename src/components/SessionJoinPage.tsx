@@ -16,6 +16,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { clearStorage, readStorage, writeStorage } from "@/lib/session-storage";
 import type { SessionDetailResponse } from "@/lib/types";
 
 type PageStatus =
@@ -26,42 +27,6 @@ type PageStatus =
 	| "not-found"
 	| "expired"
 	| "error";
-
-function storageKey(sessionId: string, suffix: "token" | "name") {
-	return `tastebud_${sessionId}_${suffix}`;
-}
-
-function readStorage(sessionId: string): {
-	token: string | null;
-	name: string | null;
-} {
-	try {
-		return {
-			token: localStorage.getItem(storageKey(sessionId, "token")),
-			name: localStorage.getItem(storageKey(sessionId, "name")),
-		};
-	} catch {
-		return { token: null, name: null };
-	}
-}
-
-function writeStorage(sessionId: string, token: string, name: string) {
-	try {
-		localStorage.setItem(storageKey(sessionId, "token"), token);
-		localStorage.setItem(storageKey(sessionId, "name"), name);
-	} catch {
-		// localStorage unavailable — degrade gracefully
-	}
-}
-
-function clearStorage(sessionId: string) {
-	try {
-		localStorage.removeItem(storageKey(sessionId, "token"));
-		localStorage.removeItem(storageKey(sessionId, "name"));
-	} catch {
-		// localStorage unavailable
-	}
-}
 
 export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 	const searchParams = useSearchParams();

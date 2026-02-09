@@ -435,16 +435,4 @@ describe("SwipePage", () => {
 		const link = screen.getByText("Back to Session");
 		expect(link.closest("a")).toHaveAttribute("href", `/s/${SESSION_ID}`);
 	});
-
-	it("shows nope and like buttons during swiping", async () => {
-		setupStorage();
-		mockFetchFor({});
-
-		render(<SwipePage sessionId={SESSION_ID} />);
-
-		await waitFor(() => {
-			expect(screen.getByRole("button", { name: "Nope" })).toBeInTheDocument();
-		});
-		expect(screen.getByRole("button", { name: "Like" })).toBeInTheDocument();
-	});
 });

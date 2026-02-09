@@ -49,7 +49,7 @@ export async function GET(
 	}
 
 	return NextResponse.json({
-		votedRestaurantIds: votes.map(
+		votedRestaurantIds: (votes ?? []).map(
 			(v: { restaurant_id: number }) => v.restaurant_id,
 		),
 	});

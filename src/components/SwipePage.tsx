@@ -6,28 +6,11 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import TinderCard from "react-tinder-card";
+import { readStorage } from "@/lib/session-storage";
 import type { MyVotesResponse, Restaurant } from "@/lib/types";
 import { RestaurantCard } from "./RestaurantCard";
 
 type PageState = "loading" | "swiping" | "done" | "error";
-
-function storageKey(sessionId: string, suffix: "token" | "name") {
-	return `tastebud_${sessionId}_${suffix}`;
-}
-
-function readStorage(sessionId: string): {
-	token: string | null;
-	name: string | null;
-} {
-	try {
-		return {
-			token: localStorage.getItem(storageKey(sessionId, "token")),
-			name: localStorage.getItem(storageKey(sessionId, "name")),
-		};
-	} catch {
-		return { token: null, name: null };
-	}
-}
 
 /** Fisher-Yates shuffle (in-place) */
 function shuffle<T>(arr: T[]): T[] {
@@ -131,6 +114,8 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 				"X-Member-Token": tokenRef.current ?? "",
 			},
 			body: JSON.stringify({ restaurantId, vote }),
+		}).catch(() => {
+			// Silently swallow — vote loss on network error is acceptable for MVP
 		});
 	}
 

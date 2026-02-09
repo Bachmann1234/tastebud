@@ -189,12 +189,20 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 					<p className="text-zinc-500 dark:text-zinc-400">
 						You've voted on all {totalCount} restaurants.
 					</p>
-					<Link
-						href={`/s/${sessionId}`}
-						className="inline-block rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-6 py-3 font-semibold text-white shadow-md transition-opacity hover:opacity-90"
-					>
-						Back to Session
-					</Link>
+					<div className="flex flex-col gap-3">
+						<Link
+							href={`/s/${sessionId}/matches`}
+							className="inline-block rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-6 py-3 font-semibold text-white shadow-md transition-opacity hover:opacity-90"
+						>
+							View Matches
+						</Link>
+						<Link
+							href={`/s/${sessionId}`}
+							className="inline-block rounded-xl border border-zinc-200 px-6 py-3 font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+						>
+							Back to Session
+						</Link>
+					</div>
 				</main>
 			</div>
 		);

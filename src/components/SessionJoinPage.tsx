@@ -372,10 +372,13 @@ export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 						</button>
 					</div>
 
-					{/* Next steps placeholder */}
-					<p className="text-center text-sm text-zinc-400 dark:text-zinc-500">
-						Swiping coming soon...
-					</p>
+					{/* Start swiping */}
+					<Link
+						href={`/s/${sessionId}/swipe`}
+						className="block w-full rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 py-3 text-center font-semibold text-white shadow-md transition-opacity hover:opacity-90"
+					>
+						Start Swiping
+					</Link>
 				</main>
 			</div>
 		);

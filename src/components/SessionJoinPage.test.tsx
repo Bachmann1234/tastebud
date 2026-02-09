@@ -479,7 +479,7 @@ describe("SessionJoinPage", () => {
 		expect(screen.getByText("Copied!")).toBeInTheDocument();
 	});
 
-	it("shows swiping coming soon placeholder", async () => {
+	it("shows start swiping link when joined", async () => {
 		localStorage.setItem(`tastebud_${SESSION_ID}_token`, "m1");
 		localStorage.setItem(`tastebud_${SESSION_ID}_name`, "Alice");
 
@@ -488,8 +488,10 @@ describe("SessionJoinPage", () => {
 		render(<SessionJoinPage sessionId={SESSION_ID} />);
 
 		await waitFor(() => {
-			expect(screen.getByText("Swiping coming soon...")).toBeInTheDocument();
+			expect(screen.getByText("Start Swiping")).toBeInTheDocument();
 		});
+		const link = screen.getByText("Start Swiping");
+		expect(link.closest("a")).toHaveAttribute("href", `/s/${SESSION_ID}/swipe`);
 	});
 
 	it("shows error when join API fails", async () => {

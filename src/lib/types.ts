@@ -114,3 +114,7 @@ export interface MatchesResponse {
 	totalRestaurants: number;
 	allMembersComplete: boolean;
 }
+
+export interface MyVotesResponse {
+	votedRestaurantIds: number[];
+}

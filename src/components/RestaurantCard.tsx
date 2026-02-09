@@ -19,7 +19,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
 	const menu = restaurant.menu;
 
 	return (
-		<div className="w-full max-w-[400px] overflow-hidden rounded-2xl bg-white shadow-lg">
+		<div className="flex h-full w-full max-w-[400px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg">
 			{/* Header: image or gradient fallback */}
 			<div
 				data-testid="card-header"
@@ -76,7 +76,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
 			{/* Menu section */}
 			{menu && menu.menus.length > 0 && (
-				<div className="max-h-64 overflow-y-auto px-4 py-3">
+				<div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
 					{menu.menus.map((meal) => (
 						<div key={meal.meal_type} className="mb-3 last:mb-0">
 							{menu.menus.length > 1 && (

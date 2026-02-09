@@ -84,8 +84,11 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
 									{meal.meal_type}
 								</h3>
 							)}
-							{meal.courses.map((course) => (
-								<div key={course.name} className="mb-2 last:mb-0">
+							{meal.courses.map((course, courseIdx) => (
+								<div
+									key={`${course.name}-${courseIdx}`}
+									className="mb-2 last:mb-0"
+								>
 									<h4 className="text-xs font-semibold uppercase tracking-wide text-gray-400">
 										{course.name}
 									</h4>

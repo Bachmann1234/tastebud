@@ -225,11 +225,15 @@ describe("SwipePage", () => {
 
 		render(<SwipePage sessionId={SESSION_ID} />);
 
+		// Only the current card (top of shuffled stack) is rendered
 		await waitFor(() => {
-			expect(screen.getByText("Restaurant A")).toBeInTheDocument();
+			const cards = [
+				screen.queryByText("Restaurant A"),
+				screen.queryByText("Restaurant B"),
+				screen.queryByText("Restaurant C"),
+			].filter(Boolean);
+			expect(cards.length).toBe(1);
 		});
-		expect(screen.getByText("Restaurant B")).toBeInTheDocument();
-		expect(screen.getByText("Restaurant C")).toBeInTheDocument();
 	});
 
 	it("filters already-voted restaurants", async () => {

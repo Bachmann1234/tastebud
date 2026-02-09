@@ -152,8 +152,21 @@ describe("MatchesPage", () => {
 		});
 	});
 
-	it("shows empty state when no matches", async () => {
-		mockMatchesFetch({ matches: [] });
+	it("shows final empty state when no matches and all complete", async () => {
+		mockMatchesFetch({ matches: [], allMembersComplete: true });
+
+		render(<MatchesPage sessionId={SESSION_ID} />);
+
+		await waitFor(() => {
+			expect(screen.getByText("No Matches")).toBeInTheDocument();
+		});
+		expect(
+			screen.getByText("No restaurants matched — better luck next time!"),
+		).toBeInTheDocument();
+	});
+
+	it("shows in-progress empty state when no matches and still swiping", async () => {
+		mockMatchesFetch({ matches: [], allMembersComplete: false });
 
 		render(<MatchesPage sessionId={SESSION_ID} />);
 

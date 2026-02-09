@@ -108,8 +108,25 @@ test.describe("Matches Page", () => {
 		await expect(page.getByText("Liked by Alice, Bob").first()).toBeVisible();
 	});
 
-	test("shows empty state when no matches", async ({ page }) => {
-		await setupMatchesMock(page, { matches: [] });
+	test("shows final empty state when all complete and no matches", async ({
+		page,
+	}) => {
+		await setupMatchesMock(page, { matches: [], allMembersComplete: true });
+
+		await page.goto(`/s/${SESSION_ID}/matches`);
+
+		await expect(
+			page.getByRole("heading", { name: "No Matches" }),
+		).toBeVisible();
+		await expect(
+			page.getByText("No restaurants matched — better luck next time!"),
+		).toBeVisible();
+	});
+
+	test("shows in-progress empty state when still swiping and no matches", async ({
+		page,
+	}) => {
+		await setupMatchesMock(page, { matches: [], allMembersComplete: false });
 
 		await page.goto(`/s/${SESSION_ID}/matches`);
 

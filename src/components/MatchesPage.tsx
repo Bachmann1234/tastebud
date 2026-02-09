@@ -153,7 +153,9 @@ export function MatchesPage({ sessionId }: { sessionId: string }) {
 					/>
 					<h1 className="mt-3 text-2xl font-bold text-zinc-900 dark:text-zinc-50">
 						{matchCount === 0
-							? "No Matches Yet"
+							? allMembersComplete
+								? "No Matches"
+								: "No Matches Yet"
 							: `${matchCount} ${matchCount === 1 ? "Match" : "Matches"}`}
 					</h1>
 				</div>
@@ -168,7 +170,9 @@ export function MatchesPage({ sessionId }: { sessionId: string }) {
 				{/* Match list or empty state */}
 				{matchCount === 0 ? (
 					<p className="text-center text-zinc-500 dark:text-zinc-400">
-						No matches yet — keep swiping!
+						{allMembersComplete
+							? "No restaurants matched — better luck next time!"
+							: "No matches yet — keep swiping!"}
 					</p>
 				) : (
 					<div className="space-y-6">

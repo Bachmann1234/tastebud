@@ -226,22 +226,26 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 				</div>
 			</div>
 
-			{/* Card stack */}
-			<div className="relative h-[500px] w-full max-w-[400px]">
-				{restaurants.map((restaurant, index) => (
-					<TinderCard
-						ref={(el) => {
-							cardRefs.current[index] = el;
-						}}
-						key={restaurant.id}
-						onSwipe={(dir) => handleSwipe(dir, restaurant.id)}
-						onCardLeftScreen={handleCardLeftScreen}
-						preventSwipe={["up", "down"]}
-						className="absolute inset-0"
-					>
-						<RestaurantCard restaurant={restaurant} />
-					</TinderCard>
-				))}
+			{/* Card stack — only render a small window around the current card */}
+			<div className="relative h-[500px] w-full max-w-[400px] overflow-hidden">
+				{restaurants.map((restaurant, index) => {
+					// Only render the current card and the one animating off-screen
+					if (index < currentIndex || index > currentIndex + 1) return null;
+					return (
+						<TinderCard
+							ref={(el) => {
+								cardRefs.current[index] = el;
+							}}
+							key={restaurant.id}
+							onSwipe={(dir) => handleSwipe(dir, restaurant.id)}
+							onCardLeftScreen={handleCardLeftScreen}
+							preventSwipe={["up", "down"]}
+							className="absolute inset-0"
+						>
+							<RestaurantCard restaurant={restaurant} />
+						</TinderCard>
+					);
+				})}
 			</div>
 
 			{/* Action buttons */}

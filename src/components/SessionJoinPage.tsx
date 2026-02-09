@@ -16,6 +16,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { clearStorage, readStorage, writeStorage } from "@/lib/session-storage";
 import type { SessionDetailResponse } from "@/lib/types";
 
 type PageStatus =
@@ -26,42 +27,6 @@ type PageStatus =
 	| "not-found"
 	| "expired"
 	| "error";
-
-function storageKey(sessionId: string, suffix: "token" | "name") {
-	return `tastebud_${sessionId}_${suffix}`;
-}
-
-function readStorage(sessionId: string): {
-	token: string | null;
-	name: string | null;
-} {
-	try {
-		return {
-			token: localStorage.getItem(storageKey(sessionId, "token")),
-			name: localStorage.getItem(storageKey(sessionId, "name")),
-		};
-	} catch {
-		return { token: null, name: null };
-	}
-}
-
-function writeStorage(sessionId: string, token: string, name: string) {
-	try {
-		localStorage.setItem(storageKey(sessionId, "token"), token);
-		localStorage.setItem(storageKey(sessionId, "name"), name);
-	} catch {
-		// localStorage unavailable — degrade gracefully
-	}
-}
-
-function clearStorage(sessionId: string) {
-	try {
-		localStorage.removeItem(storageKey(sessionId, "token"));
-		localStorage.removeItem(storageKey(sessionId, "name"));
-	} catch {
-		// localStorage unavailable
-	}
-}
 
 export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 	const searchParams = useSearchParams();
@@ -372,10 +337,13 @@ export function SessionJoinPage({ sessionId }: { sessionId: string }) {
 						</button>
 					</div>
 
-					{/* Next steps placeholder */}
-					<p className="text-center text-sm text-zinc-400 dark:text-zinc-500">
-						Swiping coming soon...
-					</p>
+					{/* Start swiping */}
+					<Link
+						href={`/s/${sessionId}/swipe`}
+						className="block w-full rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 py-3 text-center font-semibold text-white shadow-md transition-opacity hover:opacity-90"
+					>
+						Start Swiping
+					</Link>
 				</main>
 			</div>
 		);

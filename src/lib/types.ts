@@ -1,3 +1,20 @@
+// Menu types (matching scraper output shape)
+
+export interface MenuCourse {
+	name: string;
+	options: string[];
+}
+
+export interface MealMenu {
+	meal_type: string;
+	price: number | null;
+	courses: MenuCourse[];
+}
+
+export interface RestaurantMenu {
+	menus: MealMenu[];
+}
+
 // Database row types (matching Supabase schema)
 
 export interface Restaurant {
@@ -14,7 +31,7 @@ export interface Restaurant {
 	lunch_price: number | null;
 	dinner_price: number | null;
 	brunch_price: number | null;
-	menu: Record<string, unknown> | null;
+	menu: RestaurantMenu | null;
 	features: string[] | null;
 	created_at: string;
 	updated_at: string;

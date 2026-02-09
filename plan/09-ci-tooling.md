@@ -67,18 +67,25 @@ uv run pytest            # Test
 | **Playwright** | E2E tests |
 
 ```json
-// biome.json
+// biome.json (v2)
 {
-  "$schema": "https://biomejs.dev/schemas/1.7.0/schema.json",
-  "organizeImports": { "enabled": true },
+  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "tab"
+  },
   "linter": {
     "enabled": true,
     "rules": { "recommended": true }
   },
-  "formatter": {
+  "javascript": {
+    "formatter": { "quoteStyle": "double" }
+  },
+  "assist": {
     "enabled": true,
-    "indentStyle": "space",
-    "indentWidth": 2
+    "actions": {
+      "source": { "organizeImports": "on" }
+    }
   }
 }
 ```

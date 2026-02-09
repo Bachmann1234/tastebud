@@ -4,17 +4,17 @@
 Mobile-first React application with Tinder-style swipe interface.
 
 ## Tech Stack
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS
-- **Swipe Library**: react-tinder-card or @use-gesture/react
-- **State**: React hooks + Context (or Zustand if needed)
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS v4
+- **Swipe Library**: react-tinder-card
+- **State**: React hooks + Context
 - **Icons**: Lucide React
 
 ## Page Structure
 
 ```
 /app
-  /page.tsx                 # Landing page - create/join session
+  /page.tsx                 # Landing page - create session (implemented)
   /s/[sessionId]
     /page.tsx              # Join page - enter your name
     /swipe/page.tsx        # Main swiping interface
@@ -24,20 +24,19 @@ Mobile-first React application with Tinder-style swipe interface.
 
 ## Core Components
 
-### RestaurantCard
-The main swipeable card showing restaurant info.
+### RestaurantCard (implemented)
+Display-only card showing restaurant info. Swipe behavior is handled by the parent SwipeContainer via react-tinder-card.
 
 ```tsx
 interface RestaurantCardProps {
   restaurant: Restaurant;
-  onSwipe: (direction: 'left' | 'right') => void;
 }
 
 // Card sections:
-// 1. Image/header with restaurant name
-// 2. Quick info: cuisine, neighborhood, price
-// 3. Menu preview (scrollable)
-// 4. Swipe hint overlay
+// 1. Image/header with restaurant name (gradient fallback when no image)
+// 2. Quick info: cuisine tags, neighborhood, prices
+// 3. Address
+// 4. Menu preview (scrollable, courses with options)
 ```
 
 **Layout:**

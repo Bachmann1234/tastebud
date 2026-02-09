@@ -65,21 +65,32 @@ describe('vote persistence', () => {
 
 ```
 /tastebud
-├── /app
-│   └── /api
-│       └── /sessions
-│           ├── route.ts
-│           └── route.test.ts      # Co-located API tests
-├── /components
-│   ├── RestaurantCard.tsx
-│   └── RestaurantCard.test.tsx    # Co-located component tests
-├── /lib
-│   ├── matching.ts
-│   └── matching.test.ts           # Co-located unit tests
-├── /e2e
-│   ├── swipe-flow.spec.ts
-│   ├── session-sharing.spec.ts
-│   └── matching.spec.ts
+├── src/
+│   ├── app/
+│   │   └── api/
+│   │       ├── restaurants/
+│   │       │   ├── route.ts
+│   │       │   └── route.test.ts
+│   │       └── sessions/
+│   │           ├── route.ts
+│   │           ├── route.test.ts
+│   │           └── [id]/
+│   │               ├── route.ts / route.test.ts
+│   │               ├── join/route.ts / route.test.ts
+│   │               ├── vote/route.ts / route.test.ts
+│   │               └── matches/route.ts / route.test.ts
+│   ├── components/
+│   │   ├── LandingPage.tsx
+│   │   ├── LandingPage.test.tsx
+│   │   ├── RestaurantCard.tsx
+│   │   └── RestaurantCard.test.tsx
+│   ├── lib/
+│   │   ├── types.ts
+│   │   ├── api/
+│   │   └── supabase/
+│   └── test/
+│       └── setup.ts               # @testing-library/jest-dom/vitest
+├── e2e/                            # Playwright specs (future)
 └── vitest.config.ts
 ```
 

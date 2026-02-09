@@ -119,9 +119,9 @@ describe("LandingPage", () => {
 
 	it("shows loading state during submission", async () => {
 		const user = userEvent.setup();
-		let resolveFetch!: (value: Response) => void;
+		let resolveFetch!: (value: Response | PromiseLike<Response>) => void;
 		vi.spyOn(global, "fetch").mockReturnValueOnce(
-			new Promise((resolve) => {
+			new Promise<Response>((resolve) => {
 				resolveFetch = resolve;
 			}),
 		);
@@ -140,10 +140,30 @@ describe("LandingPage", () => {
 		});
 	});
 
-	it("shows error message on API failure", async () => {
+	it("shows server error message on API failure", async () => {
 		const user = userEvent.setup();
 		vi.spyOn(global, "fetch").mockResolvedValueOnce(
-			Response.json({ error: "Something went wrong" }, { status: 500 }),
+			Response.json(
+				{ error: "Name must be 255 characters or less" },
+				{ status: 400 },
+			),
+		);
+
+		render(<LandingPage />);
+
+		await user.click(screen.getByRole("button", { name: "Start a Session" }));
+
+		await waitFor(() => {
+			expect(
+				screen.getByText("Name must be 255 characters or less"),
+			).toBeInTheDocument();
+		});
+	});
+
+	it("shows default error when API returns no error message", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(global, "fetch").mockResolvedValueOnce(
+			Response.json({}, { status: 500 }),
 		);
 
 		render(<LandingPage />);
@@ -191,9 +211,9 @@ describe("LandingPage", () => {
 
 	it("prevents double submission", async () => {
 		const user = userEvent.setup();
-		let resolveFetch!: (value: Response) => void;
+		let resolveFetch!: (value: Response | PromiseLike<Response>) => void;
 		vi.spyOn(global, "fetch").mockReturnValueOnce(
-			new Promise((resolve) => {
+			new Promise<Response>((resolve) => {
 				resolveFetch = resolve;
 			}),
 		);

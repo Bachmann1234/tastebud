@@ -13,12 +13,13 @@ const steps = [
 	{ label: "Match", description: "See where you all agree" },
 ];
 
-type Status = "idle" | "creating" | "error";
+const DEFAULT_ERROR_MESSAGE = "Failed to create session. Please try again.";
 
 export function LandingPage() {
 	const router = useRouter();
 	const [name, setName] = useState("");
-	const [status, setStatus] = useState<Status>("idle");
+	const [status, setStatus] = useState<"idle" | "creating" | "error">("idle");
+	const [errorMessage, setErrorMessage] = useState(DEFAULT_ERROR_MESSAGE);
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -36,6 +37,16 @@ export function LandingPage() {
 			});
 
 			if (!response.ok) {
+				let message = DEFAULT_ERROR_MESSAGE;
+				try {
+					const body = await response.json();
+					if (typeof body.error === "string") {
+						message = body.error;
+					}
+				} catch {
+					// Fall back to default message
+				}
+				setErrorMessage(message);
 				setStatus("error");
 				return;
 			}
@@ -43,6 +54,7 @@ export function LandingPage() {
 			const data = await response.json();
 			router.push(`/s/${data.id}?creator=true`);
 		} catch {
+			setErrorMessage(DEFAULT_ERROR_MESSAGE);
 			setStatus("error");
 		}
 	}
@@ -52,7 +64,10 @@ export function LandingPage() {
 			<main className="w-full max-w-md space-y-10 py-16">
 				{/* Hero */}
 				<div className="flex flex-col items-center gap-3 text-center">
-					<UtensilsCrossed className="h-12 w-12 text-orange-500" />
+					<UtensilsCrossed
+						className="h-12 w-12 text-orange-500"
+						aria-hidden="true"
+					/>
 					<h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
 						TasteBud
 					</h1>
@@ -85,11 +100,16 @@ export function LandingPage() {
 
 				{/* Create session form */}
 				<form onSubmit={handleSubmit} className="space-y-3">
+					<label htmlFor="session-name" className="sr-only">
+						Session name
+					</label>
 					<input
+						id="session-name"
 						type="text"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						placeholder={DEFAULT_SESSION_NAME}
+						maxLength={255}
 						className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 placeholder:text-zinc-400 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500"
 					/>
 					<button
@@ -100,9 +120,7 @@ export function LandingPage() {
 						{status === "creating" ? "Creating..." : "Start a Session"}
 					</button>
 					{status === "error" && (
-						<p className="text-center text-sm text-red-500">
-							Failed to create session. Please try again.
-						</p>
+						<p className="text-center text-sm text-red-500">{errorMessage}</p>
 					)}
 				</form>
 			</main>

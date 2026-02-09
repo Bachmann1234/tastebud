@@ -213,14 +213,23 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 		totalCount > 0 ? Math.round((votedCount / totalCount) * 100) : 0;
 
 	return (
-		<div className="flex min-h-screen flex-col items-center bg-zinc-50 px-4 font-sans dark:bg-black">
+		<div className="flex h-screen flex-col items-center overflow-hidden bg-zinc-50 px-4 font-sans dark:bg-black">
 			{/* Progress bar */}
 			<div className="w-full max-w-[400px] pt-6 pb-4">
-				<div className="mb-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+				<div className="mb-1 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
 					<span>{memberName}</span>
-					<span>
-						{votedCount} / {totalCount}
-					</span>
+					<div className="flex items-center gap-3">
+						<Link
+							href={`/s/${sessionId}/matches`}
+							className="flex items-center gap-1 text-orange-500 transition-colors hover:text-orange-600"
+						>
+							<UtensilsCrossed className="h-3.5 w-3.5" />
+							<span>Matches</span>
+						</Link>
+						<span>
+							{votedCount} / {totalCount}
+						</span>
+					</div>
 				</div>
 				<div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
 					<div
@@ -235,7 +244,7 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 			</div>
 
 			{/* Card stack — only render a small window around the current card */}
-			<div className="relative h-[500px] w-full max-w-[400px] overflow-x-hidden overflow-y-visible">
+			<div className="relative min-h-0 w-full max-w-[400px] flex-1 overflow-hidden">
 				{restaurants.map((restaurant, index) => {
 					// Only render the current card and the one animating off-screen
 					if (index < currentIndex || index > currentIndex + 1) return null;

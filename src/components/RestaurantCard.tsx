@@ -7,10 +7,14 @@ interface RestaurantCardProps {
 
 export function RestaurantCard({ restaurant }: RestaurantCardProps) {
 	const prices = [
-		restaurant.lunch_price ? `$${restaurant.lunch_price} lunch` : null,
-		restaurant.dinner_price ? `$${restaurant.dinner_price} dinner` : null,
-		restaurant.brunch_price ? `$${restaurant.brunch_price} brunch` : null,
-	].filter(Boolean);
+		restaurant.lunch_price != null ? `$${restaurant.lunch_price} lunch` : null,
+		restaurant.dinner_price != null
+			? `$${restaurant.dinner_price} dinner`
+			: null,
+		restaurant.brunch_price != null
+			? `$${restaurant.brunch_price} brunch`
+			: null,
+	].filter((price): price is string => price !== null);
 
 	const menu = restaurant.menu;
 
@@ -27,6 +31,7 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
 						alt={restaurant.name}
 						fill
 						className="object-cover"
+						sizes="(max-width: 640px) 100vw, 400px"
 					/>
 				) : (
 					<div className="h-full w-full bg-gradient-to-br from-orange-400 to-rose-500" />

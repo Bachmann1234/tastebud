@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { Restaurant } from "@/lib/types";
 import { RestaurantCard } from "./RestaurantCard";
@@ -6,7 +7,7 @@ import { RestaurantCard } from "./RestaurantCard";
 vi.mock("next/image", () => ({
 	// biome-ignore lint/performance/noImgElement: test mock for next/image
 	// biome-ignore lint/a11y/useAltText: props are spread from caller
-	default: (props: React.ComponentProps<"img">) => <img {...props} />,
+	default: (props: ComponentProps<"img">) => <img {...props} />,
 }));
 
 function makeRestaurant(overrides: Partial<Restaurant> = {}): Restaurant {
@@ -128,6 +129,38 @@ describe("RestaurantCard", () => {
 		expect(screen.getByText("Dessert")).toBeInTheDocument();
 		expect(screen.getByText("Tiramisu")).toBeInTheDocument();
 		expect(screen.getByText("Panna Cotta")).toBeInTheDocument();
+	});
+
+	it("hides meal type heading when only one menu exists", () => {
+		render(<RestaurantCard restaurant={makeRestaurant()} />);
+
+		expect(screen.queryByText("dinner")).not.toBeInTheDocument();
+	});
+
+	it("shows meal type headings when multiple menus exist", () => {
+		render(
+			<RestaurantCard
+				restaurant={makeRestaurant({
+					menu: {
+						menus: [
+							{
+								meal_type: "lunch",
+								price: 28,
+								courses: [{ name: "Starter", options: ["Soup"] }],
+							},
+							{
+								meal_type: "dinner",
+								price: 45,
+								courses: [{ name: "Main", options: ["Steak"] }],
+							},
+						],
+					},
+				})}
+			/>,
+		);
+
+		expect(screen.getByText("lunch")).toBeInTheDocument();
+		expect(screen.getByText("dinner")).toBeInTheDocument();
 	});
 
 	it("handles missing optional fields gracefully", () => {

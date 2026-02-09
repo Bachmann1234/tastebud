@@ -60,6 +60,14 @@ describe("POST /api/sessions", () => {
 		expect(body.error).toBeDefined();
 	});
 
+	it("returns 400 when name is too long", async () => {
+		const response = await POST(jsonRequest({ name: "A".repeat(256) }));
+		const body = await response.json();
+
+		expect(response.status).toBe(400);
+		expect(body.error).toBeDefined();
+	});
+
 	it("returns 400 for invalid JSON", async () => {
 		const request = new Request("http://localhost/api/sessions", {
 			method: "POST",

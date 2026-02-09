@@ -170,6 +170,37 @@ describe("POST /api/sessions/[id]/vote", () => {
 		expect(body.error).toBeDefined();
 	});
 
+	it("returns 410 when session is expired", async () => {
+		mockFromImpl = (table: string) => {
+			if (table === "sessions") {
+				return {
+					select: () => ({
+						eq: () => ({
+							single: () =>
+								Promise.resolve({
+									data: {
+										id: SESSION_ID,
+										expires_at: "2020-01-01T00:00:00Z",
+									},
+									error: null,
+								}),
+						}),
+					}),
+				};
+			}
+			return {};
+		};
+
+		const response = await POST(
+			jsonRequest({ restaurantId: 42, vote: true }, MEMBER_ID),
+			makeParams(SESSION_ID),
+		);
+		const body = await response.json();
+
+		expect(response.status).toBe(410);
+		expect(body.error).toBeDefined();
+	});
+
 	it("returns 409 when vote already exists (unique constraint)", async () => {
 		mockFromImpl = (table: string) => {
 			if (table === "sessions") {

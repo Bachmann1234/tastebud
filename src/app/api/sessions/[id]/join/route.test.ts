@@ -170,6 +170,122 @@ describe("POST /api/sessions/[id]/join", () => {
 		expect(body.error).toBeDefined();
 	});
 
+	it("returns 410 when session is expired", async () => {
+		mockFromImpl = (table: string) => {
+			if (table === "sessions") {
+				return {
+					select: () => ({
+						eq: () => ({
+							single: () =>
+								Promise.resolve({
+									data: {
+										id: SESSION_ID,
+										expires_at: "2020-01-01T00:00:00Z",
+									},
+									error: null,
+								}),
+						}),
+					}),
+				};
+			}
+			return {};
+		};
+
+		const response = await POST(
+			jsonRequest({ name: "Alice" }),
+			makeParams(SESSION_ID),
+		);
+		const body = await response.json();
+
+		expect(response.status).toBe(410);
+		expect(body.error).toBeDefined();
+	});
+
+	it("handles concurrent join with unique constraint violation", async () => {
+		let memberCallCount = 0;
+		mockFromImpl = (table: string) => {
+			if (table === "sessions") {
+				return {
+					select: () => ({
+						eq: () => ({
+							single: () =>
+								Promise.resolve({
+									data: { id: SESSION_ID, expires_at: "2099-01-01T00:00:00Z" },
+									error: null,
+								}),
+						}),
+					}),
+				};
+			}
+			if (table === "session_members") {
+				memberCallCount++;
+				// Call 1: initial select — not found
+				if (memberCallCount === 1) {
+					return {
+						select: () => ({
+							eq: () => ({
+								eq: () => ({
+									single: () =>
+										Promise.resolve({
+											data: null,
+											error: { code: "PGRST116" },
+										}),
+								}),
+							}),
+						}),
+					};
+				}
+				// Call 2: insert — unique violation
+				if (memberCallCount === 2) {
+					return {
+						insert: () => ({
+							select: () => ({
+								single: () =>
+									Promise.resolve({
+										data: null,
+										error: { code: "23505", message: "unique violation" },
+									}),
+							}),
+						}),
+					};
+				}
+				// Call 3: re-select after violation — found
+				return {
+					select: () => ({
+						eq: () => ({
+							eq: () => ({
+								single: () =>
+									Promise.resolve({
+										data: {
+											id: MEMBER_ID,
+											session_id: SESSION_ID,
+											name: "Alice",
+										},
+										error: null,
+									}),
+							}),
+						}),
+					}),
+				};
+			}
+			return {};
+		};
+
+		const response = await POST(
+			jsonRequest({ name: "Alice" }),
+			makeParams(SESSION_ID),
+		);
+		const body = await response.json();
+
+		expect(response.status).toBe(200);
+		expect(body).toEqual({
+			memberId: MEMBER_ID,
+			token: MEMBER_ID,
+			name: "Alice",
+			sessionId: SESSION_ID,
+		});
+	});
+
 	it("returns 400 when name is missing", async () => {
 		const response = await POST(jsonRequest({}), makeParams(SESSION_ID));
 		const body = await response.json();

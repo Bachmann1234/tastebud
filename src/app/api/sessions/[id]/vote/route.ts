@@ -4,6 +4,7 @@ import {
 	badRequest,
 	conflict,
 	errorResponse,
+	gone,
 	notFound,
 	unauthorized,
 } from "@/lib/api/errors";
@@ -37,6 +38,11 @@ export async function POST(
 
 	if (sessionError || !session) {
 		return notFound("Session not found");
+	}
+
+	// Check expiry
+	if (new Date(session.expires_at) < new Date()) {
+		return gone("Session has expired");
 	}
 
 	// Validate token

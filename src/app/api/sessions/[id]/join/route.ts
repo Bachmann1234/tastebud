@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { badRequest, errorResponse, notFound } from "@/lib/api/errors";
+import { badRequest, errorResponse, gone, notFound } from "@/lib/api/errors";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 export async function POST(
@@ -35,6 +35,11 @@ export async function POST(
 		return notFound("Session not found");
 	}
 
+	// Check expiry
+	if (new Date(session.expires_at) < new Date()) {
+		return gone("Session has expired");
+	}
+
 	// Try to find existing member with this name
 	const { data: existing } = await supabase
 		.from("session_members")
@@ -59,7 +64,29 @@ export async function POST(
 		.select()
 		.single();
 
-	if (insertError || !member) {
+	if (insertError) {
+		// Handle concurrent join with same name (unique constraint violation)
+		if (insertError.code === "23505") {
+			const { data: existingAfterInsert } = await supabase
+				.from("session_members")
+				.select("*")
+				.eq("session_id", sessionId)
+				.eq("name", name)
+				.single();
+
+			if (existingAfterInsert) {
+				return NextResponse.json({
+					memberId: existingAfterInsert.id,
+					token: existingAfterInsert.id,
+					name: existingAfterInsert.name,
+					sessionId,
+				});
+			}
+		}
+		return errorResponse("Failed to join session", 500);
+	}
+
+	if (!member) {
 		return errorResponse("Failed to join session", 500);
 	}
 

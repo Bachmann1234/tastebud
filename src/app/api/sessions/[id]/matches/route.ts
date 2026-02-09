@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { errorResponse, notFound } from "@/lib/api/errors";
+import { errorResponse, gone, notFound } from "@/lib/api/errors";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import type { MatchesResponse, Restaurant } from "@/lib/types";
 
@@ -21,27 +21,25 @@ export async function GET(
 		return notFound("Session not found");
 	}
 
-	// Fetch members, restaurants, and votes in parallel
-	const [membersResult, restaurantsResult, countResult, votesResult] =
-		await Promise.all([
-			supabase.from("session_members").select("*").eq("session_id", sessionId),
-			supabase.from("restaurants").select("*"),
-			supabase.from("restaurants").select("*", { count: "exact", head: true }),
-			supabase.from("votes").select("*").eq("session_id", sessionId),
-		]);
+	// Check expiry
+	if (new Date(session.expires_at) < new Date()) {
+		return gone("Session has expired");
+	}
 
-	if (
-		membersResult.error ||
-		restaurantsResult.error ||
-		countResult.error ||
-		votesResult.error
-	) {
+	// Fetch members, restaurants, and votes in parallel
+	const [membersResult, restaurantsResult, votesResult] = await Promise.all([
+		supabase.from("session_members").select("*").eq("session_id", sessionId),
+		supabase.from("restaurants").select("*", { count: "exact" }),
+		supabase.from("votes").select("*").eq("session_id", sessionId),
+	]);
+
+	if (membersResult.error || restaurantsResult.error || votesResult.error) {
 		return errorResponse("Failed to fetch match data", 500);
 	}
 
 	const members = membersResult.data ?? [];
 	const restaurants = restaurantsResult.data ?? [];
-	const totalRestaurants = countResult.count ?? 0;
+	const totalRestaurants = restaurantsResult.count ?? restaurants.length;
 	const votes = votesResult.data ?? [];
 
 	// Build a member ID → name map
@@ -70,7 +68,7 @@ export async function GET(
 	}
 
 	// Find matches: restaurants where ALL members voted yes
-	const matches = [];
+	const matches: MatchesResponse["matches"] = [];
 	if (members.length > 0) {
 		for (const [restaurantId, voterIds] of yesVotesByRestaurant) {
 			if (voterIds.size === members.length) {

@@ -14,6 +14,9 @@ export async function POST(request: Request) {
 	if (!name) {
 		return badRequest("Name is required");
 	}
+	if (name.length > 255) {
+		return badRequest("Name must be 255 characters or less");
+	}
 
 	const supabase = createSupabaseServer();
 

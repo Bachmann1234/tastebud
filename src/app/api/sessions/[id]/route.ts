@@ -41,15 +41,24 @@ export async function GET(
 	const totalRestaurants = countResult.count ?? 0;
 	const votes = votesResult.data ?? [];
 
+	// Pre-group vote counts by member
+	const voteCountsByMember = new Map<string, number>();
+	for (const vote of votes) {
+		voteCountsByMember.set(
+			vote.member_id,
+			(voteCountsByMember.get(vote.member_id) ?? 0) + 1,
+		);
+	}
+
 	// Compute per-member progress
 	const memberProgress = members.map((member) => {
-		const memberVotes = votes.filter((v) => v.member_id === member.id);
+		const votesCount = voteCountsByMember.get(member.id) ?? 0;
 		return {
 			id: member.id,
 			name: member.name,
-			votesCount: memberVotes.length,
+			votesCount,
 			totalRestaurants,
-			done: memberVotes.length >= totalRestaurants,
+			done: votesCount >= totalRestaurants,
 		};
 	});
 

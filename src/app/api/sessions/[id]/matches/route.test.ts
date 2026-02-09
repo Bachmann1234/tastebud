@@ -43,15 +43,12 @@ function makeRestaurantsMock(
 	restaurants: { id: number; name: string; slug: string }[],
 ) {
 	return {
-		select: (_sel: string, opts?: { count?: string; head?: boolean }) => {
-			if (opts?.count === "exact") {
-				return Promise.resolve({
-					count: restaurants.length,
-					error: null,
-				});
-			}
-			return Promise.resolve({ data: restaurants, error: null });
-		},
+		select: () =>
+			Promise.resolve({
+				data: restaurants,
+				count: restaurants.length,
+				error: null,
+			}),
 	};
 }
 
@@ -180,6 +177,22 @@ describe("GET /api/sessions/[id]/matches", () => {
 
 		expect(response.status).toBe(200);
 		expect(body.matches).toEqual([]);
+	});
+
+	it("returns 410 when session is expired", async () => {
+		mockFromImpl = (table: string) => {
+			if (table === "sessions") return makeSessionMock(true, true);
+			return {};
+		};
+
+		const request = new Request(
+			`http://localhost/api/sessions/${SESSION_ID}/matches`,
+		);
+		const response = await GET(request, makeParams(SESSION_ID));
+		const body = await response.json();
+
+		expect(response.status).toBe(410);
+		expect(body.error).toBeDefined();
 	});
 
 	it("returns 404 when session not found", async () => {

@@ -45,25 +45,25 @@ export async function POST(request: Request) {
 		return badRequest("Name must be 255 characters or less");
 	}
 
-	// Validate filters shape if provided
-	if (body.filters !== undefined && body.filters !== null) {
-		const parsed = validateFilters(body.filters);
-		if (parsed === null && body.filters !== null) {
-			// filters was provided but invalid shape (not just empty)
-			if (typeof body.filters !== "object" || Array.isArray(body.filters)) {
-				return badRequest("Invalid filters format");
-			}
-			const obj = body.filters as Record<string, unknown>;
-			if (
-				("cuisines" in obj && !isStringArray(obj.cuisines)) ||
-				("neighborhoods" in obj && !isStringArray(obj.neighborhoods))
-			) {
-				return badRequest("Invalid filters format");
-			}
-		}
-	}
+	// Validate filters and compute parsed value once
+	const rawFilters = body.filters;
+	let filters: SessionFilters | null = null;
 
-	const filters = validateFilters(body.filters);
+	if (rawFilters !== undefined && rawFilters !== null) {
+		if (typeof rawFilters !== "object" || Array.isArray(rawFilters)) {
+			return badRequest("Invalid filters format");
+		}
+
+		const obj = rawFilters as Record<string, unknown>;
+		if (
+			("cuisines" in obj && !isStringArray(obj.cuisines)) ||
+			("neighborhoods" in obj && !isStringArray(obj.neighborhoods))
+		) {
+			return badRequest("Invalid filters format");
+		}
+
+		filters = validateFilters(rawFilters);
+	}
 
 	const supabase = createSupabaseServer();
 

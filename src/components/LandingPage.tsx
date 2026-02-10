@@ -203,6 +203,8 @@ export function LandingPage() {
 						<button
 							type="button"
 							onClick={() => setFiltersOpen(!filtersOpen)}
+							aria-expanded={filtersOpen}
+							aria-controls="filter-panel"
 							className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300"
 						>
 							<span>
@@ -221,7 +223,10 @@ export function LandingPage() {
 						</button>
 
 						{filtersOpen && (
-							<div className="space-y-4 border-t border-zinc-200 px-4 pt-3 pb-4 dark:border-zinc-700">
+							<div
+								id="filter-panel"
+								className="space-y-4 border-t border-zinc-200 px-4 pt-3 pb-4 dark:border-zinc-700"
+							>
 								{filterLoading && (
 									<p className="text-sm text-zinc-400">Loading filters...</p>
 								)}
@@ -238,6 +243,7 @@ export function LandingPage() {
 														<button
 															key={cuisine}
 															type="button"
+															aria-pressed={selectedCuisines.has(cuisine)}
 															onClick={() => toggleCuisine(cuisine)}
 															className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
 																selectedCuisines.has(cuisine)
@@ -262,6 +268,9 @@ export function LandingPage() {
 														<button
 															key={neighborhood}
 															type="button"
+															aria-pressed={selectedNeighborhoods.has(
+																neighborhood,
+															)}
 															onClick={() => toggleNeighborhood(neighborhood)}
 															className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
 																selectedNeighborhoods.has(neighborhood)

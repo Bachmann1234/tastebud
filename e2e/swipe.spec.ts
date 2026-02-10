@@ -61,7 +61,7 @@ const mockRestaurants = [
 
 function setupSwipeMocks(page: import("@playwright/test").Page) {
 	return Promise.all([
-		page.route("**/api/restaurants", (route) => {
+		page.route(`**/api/sessions/${SESSION_ID}/restaurants`, (route) => {
 			return route.fulfill({
 				status: 200,
 				contentType: "application/json",
@@ -179,7 +179,7 @@ test.describe("Swipe Page", () => {
 		page,
 	}) => {
 		// Do NOT set localStorage — simulate unauthenticated user
-		await page.route("**/api/restaurants", (route) => {
+		await page.route(`**/api/sessions/${SESSION_ID}/restaurants`, (route) => {
 			return route.fulfill({
 				status: 200,
 				contentType: "application/json",

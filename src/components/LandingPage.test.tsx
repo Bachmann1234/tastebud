@@ -9,6 +9,11 @@ vi.mock("next/navigation", () => ({
 	useRouter: () => ({ push: mockPush }),
 }));
 
+const mockFilterOptions = {
+	cuisines: ["Italian", "Japanese", "Mexican"],
+	neighborhoods: ["Back Bay", "Seaport", "South End"],
+};
+
 describe("LandingPage", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -231,6 +236,197 @@ describe("LandingPage", () => {
 
 		await waitFor(() => {
 			expect(mockPush).toHaveBeenCalled();
+		});
+	});
+
+	// Filter tests
+
+	it("renders filter toggle button", () => {
+		render(<LandingPage />);
+
+		expect(
+			screen.getByRole("button", { name: /Filter restaurants/i }),
+		).toBeInTheDocument();
+	});
+
+	it("fetches and displays filter options when filter section is opened", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(global, "fetch").mockResolvedValueOnce(
+			Response.json(mockFilterOptions),
+		);
+
+		render(<LandingPage />);
+
+		await user.click(
+			screen.getByRole("button", { name: /Filter restaurants/i }),
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("Italian")).toBeInTheDocument();
+			expect(screen.getByText("Japanese")).toBeInTheDocument();
+			expect(screen.getByText("Back Bay")).toBeInTheDocument();
+			expect(screen.getByText("Seaport")).toBeInTheDocument();
+		});
+	});
+
+	it("shows loading state while fetching filters", async () => {
+		const user = userEvent.setup();
+		let resolveFetch!: (value: Response | PromiseLike<Response>) => void;
+		vi.spyOn(global, "fetch").mockReturnValueOnce(
+			new Promise<Response>((resolve) => {
+				resolveFetch = resolve;
+			}),
+		);
+
+		render(<LandingPage />);
+
+		await user.click(
+			screen.getByRole("button", { name: /Filter restaurants/i }),
+		);
+
+		expect(screen.getByText("Loading filters...")).toBeInTheDocument();
+
+		resolveFetch(Response.json(mockFilterOptions));
+
+		await waitFor(() => {
+			expect(screen.getByText("Italian")).toBeInTheDocument();
+		});
+	});
+
+	it("toggles cuisine selection", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(global, "fetch").mockResolvedValueOnce(
+			Response.json(mockFilterOptions),
+		);
+
+		render(<LandingPage />);
+
+		await user.click(
+			screen.getByRole("button", { name: /Filter restaurants/i }),
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("Italian")).toBeInTheDocument();
+		});
+
+		const italianButton = screen.getByRole("button", { name: "Italian" });
+
+		// Select
+		await user.click(italianButton);
+		expect(italianButton).toHaveClass("bg-orange-500");
+
+		// Deselect
+		await user.click(italianButton);
+		expect(italianButton).not.toHaveClass("bg-orange-500");
+	});
+
+	it("toggles neighborhood selection", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(global, "fetch").mockResolvedValueOnce(
+			Response.json(mockFilterOptions),
+		);
+
+		render(<LandingPage />);
+
+		await user.click(
+			screen.getByRole("button", { name: /Filter restaurants/i }),
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("Back Bay")).toBeInTheDocument();
+		});
+
+		const backBayButton = screen.getByRole("button", { name: "Back Bay" });
+
+		// Select
+		await user.click(backBayButton);
+		expect(backBayButton).toHaveClass("bg-blue-500");
+
+		// Deselect
+		await user.click(backBayButton);
+		expect(backBayButton).not.toHaveClass("bg-blue-500");
+	});
+
+	it("shows active filter count badge", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(global, "fetch").mockResolvedValueOnce(
+			Response.json(mockFilterOptions),
+		);
+
+		render(<LandingPage />);
+
+		await user.click(
+			screen.getByRole("button", { name: /Filter restaurants/i }),
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("Italian")).toBeInTheDocument();
+		});
+
+		await user.click(screen.getByRole("button", { name: "Italian" }));
+		await user.click(screen.getByRole("button", { name: "Back Bay" }));
+
+		expect(screen.getByText("2")).toBeInTheDocument();
+	});
+
+	it("sends filters in session creation request", async () => {
+		const user = userEvent.setup();
+		const fetchSpy = vi.spyOn(global, "fetch");
+
+		// First call: filter options
+		fetchSpy.mockResolvedValueOnce(Response.json(mockFilterOptions));
+
+		render(<LandingPage />);
+
+		// Open filters and select some
+		await user.click(
+			screen.getByRole("button", { name: /Filter restaurants/i }),
+		);
+
+		await waitFor(() => {
+			expect(screen.getByText("Italian")).toBeInTheDocument();
+		});
+
+		await user.click(screen.getByRole("button", { name: "Italian" }));
+		await user.click(screen.getByRole("button", { name: "Back Bay" }));
+
+		// Second call: create session
+		fetchSpy.mockResolvedValueOnce(
+			Response.json({ id: "session-123" }, { status: 201 }),
+		);
+
+		await user.click(screen.getByRole("button", { name: "Start a Session" }));
+
+		await waitFor(() => {
+			const sessionCall = fetchSpy.mock.calls.find(
+				(call) => call[0] === "/api/sessions",
+			);
+			expect(sessionCall).toBeDefined();
+			// biome-ignore lint/style/noNonNullAssertion: sessionCall is asserted defined above
+			const body = JSON.parse((sessionCall![1] as RequestInit).body as string);
+			expect(body.filters).toEqual({
+				cuisines: ["Italian"],
+				neighborhoods: ["Back Bay"],
+			});
+		});
+	});
+
+	it("does not send filters when none selected", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(global, "fetch").mockResolvedValueOnce(
+			Response.json({ id: "session-123" }, { status: 201 }),
+		);
+
+		render(<LandingPage />);
+
+		await user.click(screen.getByRole("button", { name: "Start a Session" }));
+
+		await waitFor(() => {
+			expect(global.fetch).toHaveBeenCalledWith("/api/sessions", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name: "Restaurant Week Session" }),
+			});
 		});
 	});
 });

@@ -1,8 +1,9 @@
 "use client";
 
-import { UtensilsCrossed } from "lucide-react";
+import { ChevronDown, ChevronUp, UtensilsCrossed } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useState } from "react";
+import type { SessionFilters } from "@/lib/types";
 
 const DEFAULT_SESSION_NAME = "Restaurant Week Session";
 
@@ -15,11 +16,91 @@ const steps = [
 
 const DEFAULT_ERROR_MESSAGE = "Failed to create session. Please try again.";
 
+interface FilterOptions {
+	cuisines: string[];
+	neighborhoods: string[];
+}
+
 export function LandingPage() {
 	const router = useRouter();
 	const [name, setName] = useState("");
 	const [status, setStatus] = useState<"idle" | "creating" | "error">("idle");
 	const [errorMessage, setErrorMessage] = useState(DEFAULT_ERROR_MESSAGE);
+
+	// Filter state
+	const [filtersOpen, setFiltersOpen] = useState(false);
+	const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(
+		null,
+	);
+	const [filterLoading, setFilterLoading] = useState(false);
+	const [selectedCuisines, setSelectedCuisines] = useState<Set<string>>(
+		new Set(),
+	);
+	const [selectedNeighborhoods, setSelectedNeighborhoods] = useState<
+		Set<string>
+	>(new Set());
+
+	const activeFilterCount = selectedCuisines.size + selectedNeighborhoods.size;
+
+	const fetchFilterOptions = useCallback(async () => {
+		if (filterOptions || filterLoading) return;
+		setFilterLoading(true);
+		try {
+			const res = await fetch("/api/restaurants/filters");
+			if (res.ok) {
+				const data: FilterOptions = await res.json();
+				setFilterOptions(data);
+			}
+		} catch {
+			// Silently fail — filters are optional
+		} finally {
+			setFilterLoading(false);
+		}
+	}, [filterOptions, filterLoading]);
+
+	useEffect(() => {
+		if (filtersOpen) {
+			fetchFilterOptions();
+		}
+	}, [filtersOpen, fetchFilterOptions]);
+
+	function toggleCuisine(cuisine: string) {
+		setSelectedCuisines((prev) => {
+			const next = new Set(prev);
+			if (next.has(cuisine)) {
+				next.delete(cuisine);
+			} else {
+				next.add(cuisine);
+			}
+			return next;
+		});
+	}
+
+	function toggleNeighborhood(neighborhood: string) {
+		setSelectedNeighborhoods((prev) => {
+			const next = new Set(prev);
+			if (next.has(neighborhood)) {
+				next.delete(neighborhood);
+			} else {
+				next.add(neighborhood);
+			}
+			return next;
+		});
+	}
+
+	function buildFilters(): SessionFilters | undefined {
+		if (selectedCuisines.size === 0 && selectedNeighborhoods.size === 0) {
+			return undefined;
+		}
+		const filters: SessionFilters = {};
+		if (selectedCuisines.size > 0) {
+			filters.cuisines = [...selectedCuisines];
+		}
+		if (selectedNeighborhoods.size > 0) {
+			filters.neighborhoods = [...selectedNeighborhoods];
+		}
+		return filters;
+	}
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -28,12 +109,16 @@ export function LandingPage() {
 		setStatus("creating");
 
 		const sessionName = name.trim() || DEFAULT_SESSION_NAME;
+		const filters = buildFilters();
 
 		try {
 			const response = await fetch("/api/sessions", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name: sessionName }),
+				body: JSON.stringify({
+					name: sessionName,
+					...(filters && { filters }),
+				}),
 			});
 
 			if (!response.ok) {
@@ -112,6 +197,99 @@ export function LandingPage() {
 						maxLength={255}
 						className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 placeholder:text-zinc-400 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-500"
 					/>
+
+					{/* Filter section */}
+					<div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+						<button
+							type="button"
+							onClick={() => setFiltersOpen(!filtersOpen)}
+							aria-expanded={filtersOpen}
+							aria-controls="filter-panel"
+							className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300"
+						>
+							<span>
+								Filter restaurants
+								{activeFilterCount > 0 && (
+									<span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-xs font-semibold text-white">
+										{activeFilterCount}
+									</span>
+								)}
+							</span>
+							{filtersOpen ? (
+								<ChevronUp className="h-4 w-4" />
+							) : (
+								<ChevronDown className="h-4 w-4" />
+							)}
+						</button>
+
+						{filtersOpen && (
+							<div
+								id="filter-panel"
+								className="space-y-4 border-t border-zinc-200 px-4 pt-3 pb-4 dark:border-zinc-700"
+							>
+								{filterLoading && (
+									<p className="text-sm text-zinc-400">Loading filters...</p>
+								)}
+
+								{filterOptions && (
+									<>
+										{filterOptions.cuisines.length > 0 && (
+											<div>
+												<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+													Cuisine
+												</p>
+												<div className="flex flex-wrap gap-2">
+													{filterOptions.cuisines.map((cuisine) => (
+														<button
+															key={cuisine}
+															type="button"
+															aria-pressed={selectedCuisines.has(cuisine)}
+															onClick={() => toggleCuisine(cuisine)}
+															className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+																selectedCuisines.has(cuisine)
+																	? "bg-orange-500 text-white"
+																	: "bg-orange-50 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
+															}`}
+														>
+															{cuisine}
+														</button>
+													))}
+												</div>
+											</div>
+										)}
+
+										{filterOptions.neighborhoods.length > 0 && (
+											<div>
+												<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+													Neighborhood
+												</p>
+												<div className="flex flex-wrap gap-2">
+													{filterOptions.neighborhoods.map((neighborhood) => (
+														<button
+															key={neighborhood}
+															type="button"
+															aria-pressed={selectedNeighborhoods.has(
+																neighborhood,
+															)}
+															onClick={() => toggleNeighborhood(neighborhood)}
+															className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+																selectedNeighborhoods.has(neighborhood)
+																	? "bg-blue-500 text-white"
+																	: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+															}`}
+														>
+															{neighborhood}
+														</button>
+													))}
+												</div>
+											</div>
+										)}
+									</>
+								)}
+							</div>
+						)}
+					</div>
+
 					<button
 						type="submit"
 						disabled={status === "creating"}

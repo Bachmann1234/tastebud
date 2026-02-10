@@ -43,6 +43,7 @@ describe("GET /api/sessions/[id]", () => {
 				return makeSessionMock({
 					id: SESSION_ID,
 					name: "Date Night",
+					filters: null,
 					created_at: "2025-01-01T00:00:00Z",
 					expires_at: futureDate,
 				});
@@ -63,7 +64,7 @@ describe("GET /api/sessions/[id]", () => {
 			}
 			if (table === "restaurants") {
 				return {
-					select: (_sel: string, opts?: { count?: string }) => {
+					select: (_sel: string, opts?: { count?: string; head?: boolean }) => {
 						if (opts?.count === "exact") {
 							return Promise.resolve({ count: 10, error: null });
 						}
@@ -96,6 +97,7 @@ describe("GET /api/sessions/[id]", () => {
 		expect(response.status).toBe(200);
 		expect(body.id).toBe(SESSION_ID);
 		expect(body.name).toBe("Date Night");
+		expect(body.filters).toBeNull();
 		expect(body.totalRestaurants).toBe(10);
 		expect(body.members).toHaveLength(2);
 
@@ -112,6 +114,72 @@ describe("GET /api/sessions/[id]", () => {
 
 		// matchCount: restaurant 1 has yes from both Alice and Bob = 1 match
 		expect(body.matchCount).toBe(1);
+	});
+
+	it("includes filters in response when session has filters", async () => {
+		const futureDate = new Date(
+			Date.now() + 30 * 24 * 60 * 60 * 1000,
+		).toISOString();
+
+		const sessionFilters = {
+			cuisines: ["Italian"],
+			neighborhoods: ["Back Bay"],
+		};
+
+		let overlapsCalledWith: unknown[] = [];
+
+		mockFromImpl = (table: string) => {
+			if (table === "sessions") {
+				return makeSessionMock({
+					id: SESSION_ID,
+					name: "Filtered Session",
+					filters: sessionFilters,
+					created_at: "2025-01-01T00:00:00Z",
+					expires_at: futureDate,
+				});
+			}
+			if (table === "session_members") {
+				return {
+					select: () => ({
+						eq: () => Promise.resolve({ data: [], error: null }),
+					}),
+				};
+			}
+			if (table === "restaurants") {
+				return {
+					select: (_sel: string, opts?: { count?: string; head?: boolean }) => {
+						if (opts?.count === "exact") {
+							return {
+								overlaps: (...args: unknown[]) => {
+									overlapsCalledWith = args;
+									return {
+										in: () => Promise.resolve({ count: 3, error: null }),
+									};
+								},
+							};
+						}
+						return Promise.resolve({ data: [], error: null });
+					},
+				};
+			}
+			if (table === "votes") {
+				return {
+					select: () => ({
+						eq: () => Promise.resolve({ data: [], error: null }),
+					}),
+				};
+			}
+			return {};
+		};
+
+		const request = new Request(`http://localhost/api/sessions/${SESSION_ID}`);
+		const response = await GET(request, makeParams(SESSION_ID));
+		const body = await response.json();
+
+		expect(response.status).toBe(200);
+		expect(body.filters).toEqual(sessionFilters);
+		expect(body.totalRestaurants).toBe(3);
+		expect(overlapsCalledWith).toEqual(["cuisine", ["Italian"]]);
 	});
 
 	it("returns 404 when session not found", async () => {
@@ -132,6 +200,7 @@ describe("GET /api/sessions/[id]", () => {
 			makeSessionMock({
 				id: SESSION_ID,
 				name: "Old Session",
+				filters: null,
 				created_at: "2024-01-01T00:00:00Z",
 				expires_at: pastDate,
 			});
@@ -154,6 +223,7 @@ describe("GET /api/sessions/[id]", () => {
 				return makeSessionMock({
 					id: SESSION_ID,
 					name: "Empty",
+					filters: null,
 					created_at: "2025-01-01T00:00:00Z",
 					expires_at: futureDate,
 				});
@@ -167,7 +237,7 @@ describe("GET /api/sessions/[id]", () => {
 			}
 			if (table === "restaurants") {
 				return {
-					select: (_sel: string, opts?: { count?: string }) => {
+					select: (_sel: string, opts?: { count?: string; head?: boolean }) => {
 						if (opts?.count === "exact") {
 							return Promise.resolve({ count: 5, error: null });
 						}

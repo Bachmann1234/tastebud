@@ -164,7 +164,11 @@ function mockFetchFor(options: {
 	return vi.spyOn(global, "fetch").mockImplementation(async (input) => {
 		const url = typeof input === "string" ? input : (input as Request).url;
 
-		if (url.includes("/api/restaurants")) {
+		if (
+			url.includes("/restaurants") &&
+			!url.includes("/my-votes") &&
+			!url.includes("/vote")
+		) {
 			if (restaurantsStatus !== 200) {
 				return Response.json({ error: "fail" }, { status: restaurantsStatus });
 			}

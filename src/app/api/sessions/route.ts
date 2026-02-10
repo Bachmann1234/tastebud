@@ -1,9 +1,36 @@
 import { NextResponse } from "next/server";
 import { badRequest, errorResponse } from "@/lib/api/errors";
 import { createSupabaseServer } from "@/lib/supabase/server";
+import type { SessionFilters } from "@/lib/types";
+
+function isStringArray(value: unknown): value is string[] {
+	return (
+		Array.isArray(value) && value.every((item) => typeof item === "string")
+	);
+}
+
+function validateFilters(raw: unknown): SessionFilters | null {
+	if (raw == null) return null;
+	if (typeof raw !== "object" || Array.isArray(raw)) return null;
+
+	const obj = raw as Record<string, unknown>;
+	const filters: SessionFilters = {};
+
+	if ("cuisines" in obj) {
+		if (!isStringArray(obj.cuisines)) return null;
+		if (obj.cuisines.length > 0) filters.cuisines = obj.cuisines;
+	}
+	if ("neighborhoods" in obj) {
+		if (!isStringArray(obj.neighborhoods)) return null;
+		if (obj.neighborhoods.length > 0) filters.neighborhoods = obj.neighborhoods;
+	}
+
+	if (!filters.cuisines && !filters.neighborhoods) return null;
+	return filters;
+}
 
 export async function POST(request: Request) {
-	let body: { name?: string };
+	let body: { name?: string; filters?: unknown };
 	try {
 		body = await request.json();
 	} catch {
@@ -18,11 +45,31 @@ export async function POST(request: Request) {
 		return badRequest("Name must be 255 characters or less");
 	}
 
+	// Validate filters shape if provided
+	if (body.filters !== undefined && body.filters !== null) {
+		const parsed = validateFilters(body.filters);
+		if (parsed === null && body.filters !== null) {
+			// filters was provided but invalid shape (not just empty)
+			if (typeof body.filters !== "object" || Array.isArray(body.filters)) {
+				return badRequest("Invalid filters format");
+			}
+			const obj = body.filters as Record<string, unknown>;
+			if (
+				("cuisines" in obj && !isStringArray(obj.cuisines)) ||
+				("neighborhoods" in obj && !isStringArray(obj.neighborhoods))
+			) {
+				return badRequest("Invalid filters format");
+			}
+		}
+	}
+
+	const filters = validateFilters(body.filters);
+
 	const supabase = createSupabaseServer();
 
 	const { data, error } = await supabase
 		.from("sessions")
-		.insert({ name })
+		.insert({ name, filters })
 		.select()
 		.single();
 

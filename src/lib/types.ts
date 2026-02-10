@@ -37,9 +37,15 @@ export interface Restaurant {
 	updated_at: string;
 }
 
+export interface SessionFilters {
+	cuisines?: string[];
+	neighborhoods?: string[];
+}
+
 export interface Session {
 	id: string;
 	name: string | null;
+	filters: SessionFilters | null;
 	created_at: string;
 	expires_at: string;
 }
@@ -79,6 +85,7 @@ export interface MemberProgress {
 export interface SessionDetailResponse {
 	id: string;
 	name: string | null;
+	filters: SessionFilters | null;
 	createdAt: string;
 	expiresAt: string;
 	members: MemberProgress[];

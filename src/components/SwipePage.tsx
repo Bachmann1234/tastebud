@@ -53,7 +53,7 @@ export function SwipePage({ sessionId }: { sessionId: string }) {
 
 		try {
 			const [restaurantsRes, votesRes] = await Promise.all([
-				fetch("/api/restaurants"),
+				fetch(`/api/sessions/${sessionId}/restaurants`),
 				fetch(`/api/sessions/${sessionId}/my-votes`, {
 					headers: { "X-Member-Token": stored.token },
 				}),

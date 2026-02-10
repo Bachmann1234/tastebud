@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { errorResponse, gone, notFound } from "@/lib/api/errors";
+import { applySessionFilters } from "@/lib/supabase/filters";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import type { SessionDetailResponse } from "@/lib/types";
 
@@ -26,10 +27,15 @@ export async function GET(
 		return gone("Session has expired");
 	}
 
-	// Fetch members, restaurant count, and votes in parallel
+	// Fetch members, restaurant count (filtered), and votes in parallel
+	const countQuery = applySessionFilters(
+		supabase.from("restaurants").select("*", { count: "exact", head: true }),
+		session.filters,
+	);
+
 	const [membersResult, countResult, votesResult] = await Promise.all([
 		supabase.from("session_members").select("*").eq("session_id", id),
-		supabase.from("restaurants").select("*", { count: "exact", head: true }),
+		countQuery,
 		supabase.from("votes").select("*").eq("session_id", id),
 	]);
 
@@ -89,6 +95,7 @@ export async function GET(
 	const response: SessionDetailResponse = {
 		id: session.id,
 		name: session.name,
+		filters: session.filters ?? null,
 		createdAt: session.created_at,
 		expiresAt: session.expires_at,
 		members: memberProgress,

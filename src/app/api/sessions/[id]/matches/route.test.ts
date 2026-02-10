@@ -26,6 +26,7 @@ function makeSessionMock(exists: boolean, expired = false) {
 									data: {
 										id: SESSION_ID,
 										name: "Test",
+										filters: null,
 										expires_at: expired
 											? "2020-01-01T00:00:00Z"
 											: "2099-01-01T00:00:00Z",
@@ -359,5 +360,78 @@ describe("GET /api/sessions/[id]/matches", () => {
 		expect(body.matches[0].likedBy).toHaveLength(2);
 		expect(body.matches[0].likedBy).toContain("Alice");
 		expect(body.matches[0].likedBy).toContain("Bob");
+	});
+
+	it("applies session filters to restaurant query", async () => {
+		let overlapsCalledWith: unknown[] = [];
+
+		mockFromImpl = (table: string) => {
+			if (table === "sessions") {
+				return {
+					select: () => ({
+						eq: () => ({
+							single: () =>
+								Promise.resolve({
+									data: {
+										id: SESSION_ID,
+										name: "Filtered",
+										filters: { cuisines: ["Italian"] },
+										expires_at: "2099-01-01T00:00:00Z",
+									},
+									error: null,
+								}),
+						}),
+					}),
+				};
+			}
+			if (table === "session_members") {
+				return {
+					select: () => ({
+						eq: () =>
+							Promise.resolve({
+								data: [{ id: "m1", name: "Alice", session_id: SESSION_ID }],
+								error: null,
+							}),
+					}),
+				};
+			}
+			if (table === "restaurants") {
+				return {
+					select: () => ({
+						overlaps: (...args: unknown[]) => {
+							overlapsCalledWith = args;
+							return Promise.resolve({
+								data: [{ id: 1, name: "Pizza", slug: "pizza" }],
+								count: 1,
+								error: null,
+							});
+						},
+					}),
+				};
+			}
+			if (table === "votes") {
+				return {
+					select: () => ({
+						eq: () =>
+							Promise.resolve({
+								data: [{ member_id: "m1", restaurant_id: 1, vote: true }],
+								error: null,
+							}),
+					}),
+				};
+			}
+			return {};
+		};
+
+		const request = new Request(
+			`http://localhost/api/sessions/${SESSION_ID}/matches`,
+		);
+		const response = await GET(request, makeParams(SESSION_ID));
+		const body = await response.json();
+
+		expect(response.status).toBe(200);
+		expect(overlapsCalledWith).toEqual(["cuisine", ["Italian"]]);
+		expect(body.totalRestaurants).toBe(1);
+		expect(body.matches).toHaveLength(1);
 	});
 });
